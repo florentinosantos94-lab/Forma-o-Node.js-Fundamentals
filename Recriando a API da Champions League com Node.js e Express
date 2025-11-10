@@ -1,0 +1,40 @@
+// Importação de módulos e configuração do servidor
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+// Dados iniciais simulados da Champions League
+let equipes = [
+    { id: 1, nome: 'Real Madrid', pais: 'Espanha' },
+    { id: 2, nome: 'Liverpool', pais: 'Inglaterra' }
+];
+
+let jogadores = [
+    { id: 1, nome: 'Cristiano Ronaldo', equipeId: 1 },
+    { id: 2, nome: 'Mohamed Salah', equipeId: 2 }
+];
+
+let partidas = [
+    { id: 1, equipeCasa: 'Real Madrid', equipeVisitante: 'Liverpool', data: '2022-01-01' }
+];
+
+// Rotas para manipulação de dados da Champions League
+app.get('/equipes', (req, res) => {
+    res.json(equipes);
+});
+
+app.get('/jogadores', (req, res) => {
+    res.json(jogadores);
+});
+
+app.get('/partidas', (req, res) => {
+    res.json(partidas);
+});
+
+// Adicionar mais rotas conforme necessário (ex: adicionar, atualizar, deletar dados)
+
+// Inicialização do servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
