@@ -1,0 +1,45 @@
+// Importação de módulos e configuração do servidor
+import express, { Request, Response } from 'express';
+import bodyParser from 'body-parser';
+
+const app = express();
+const PORT = 3000;
+
+// Middleware para analisar corpos de solicitação
+app.use(bodyParser.json());
+
+// Rotas para manipulação de episódios de podcasts
+app.get('/episodios', (req: Request, res: Response) => {
+    // Lógica para retornar a lista de episódios
+    res.send('Lista de episódios de podcasts');
+});
+
+app.post('/episodios', (req: Request, res: Response) => {
+    // Lógica para adicionar um novo episódio
+    const { titulo, descricao } = req.body;
+    res.send(`Novo episódio adicionado: ${titulo} - ${descricao}`);
+});
+
+// Rota de feed de podcasts
+app.get('/feed', (req: Request, res: Response) => {
+    // Lógica para gerar e retornar o feed de podcasts
+    res.send('Feed de podcasts');
+});
+
+// Rota de subscrição a podcasts
+app.post('/subscricao', (req: Request, res: Response) => {
+    // Lógica para permitir a subscrição a um podcast
+    const { email } = req.body;
+    res.send(`Subscrição realizada com sucesso para o e-mail: ${email}`);
+});
+
+// Rota de análise de audiência
+app.get('/analise', (req: Request, res: Response) => {
+    // Lógica para análise de audiência dos episódios
+    res.send('Análise de audiência dos episódios de podcasts');
+});
+
+// Inicialização do servidor
+app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
