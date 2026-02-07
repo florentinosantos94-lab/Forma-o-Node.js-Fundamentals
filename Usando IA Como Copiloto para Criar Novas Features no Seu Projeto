@@ -1,0 +1,169 @@
+🚀 TaskFlow AI: Projeto Full-Stack Consolidado
+Este arquivo serve como o Plano Mestre do projeto, estruturado para ser implementado rapidamente com o auxílio de IA.
+1. Infraestrutura e Banco de Dados (schema.prisma)
+Define a estrutura de dados que a IA utilizará para persistência.
+code
+Prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  tasks Task[]
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("PENDENTE") // PENDENTE, CONCLUIDO
+  priority    Int      @default(1)          // Sugerido pela IA (1-5)
+  createdAt   DateTime @default(now())
+  userId      Int
+  author      User     @relation(fields: [userId], references: [id])
+}
+2. Backend, IA e Documentação (server.ts)
+O core da aplicação: API Express, Lógica de Priorização e Swagger.
+code
+TypeScript
+import express, { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+
+const prisma = new PrismaClient();
+const app = express();
+app.use(express.json());
+
+/**
+ * LÓGICA DE IA (Copiloto): Sugestão de Prioridade
+ */
+const suggestPriority = (title: string, desc: string): number => {
+  const keywords = { high: ['erro', 'bug', 'urgente', 'parado'], medium: ['ajuste', 'melhoria', 'prazo'] };
+  const text = `${title} ${desc}`.toLowerCase();
+  if (keywords.high.some(w => text.includes(w))) return 5;
+  if (keywords.medium.some(w => text.includes(w))) return 3;
+  return 1;
+};
+
+/**
+ * ROTAS DA API
+ */
+
+// Criar Tarefa com Priorização Inteligente
+app.post('/tasks', async (req: Request, res: Response) => {
+  const { title, description, userId } = req.body;
+  const priority = suggestPriority(title, description || "");
+  
+  const task = await prisma.task.create({
+    data: { title, description, priority, userId }
+  });
+  res.status(201).json(task);
+});
+
+// Listar Tarefas
+app.get('/tasks', async (req: Request, res: Response) => {
+  const tasks = await prisma.task.findMany({ orderBy: { priority: 'desc' } });
+  res.json(tasks);
+});
+
+/**
+ * CONFIGURAÇÃO SWAGGER (Documentação)
+ */
+const swaggerSpecs = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'TaskFlow AI API', version: '1.0.0' },
+  },
+  apis: ['./server.ts'],
+});
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
+app.listen(3000, () => console.log("🚀 Server rodando em http://localhost:3000"));
+3. Frontend Dashboard (App.tsx)
+Interface moderna em React + Tailwind CSS para visualização das tarefas.
+code
+Tsx
+import React, { useEffect, useState } from 'react';
+
+export default function TaskDashboard() {
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    fetch('/tasks').then(res => res.json()).then(setTasks);
+  }, []);
+
+  return (
+    <div className="p-10 bg-gray-50 min-h-screen font-sans">
+      <header className="flex justify-between items-center mb-10">
+        <h1 className="text-4xl font-extrabold text-indigo-700">TaskFlow AI</h1>
+        <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+          + Nova Tarefa Inteligente
+        </button>
+      </header>
+
+      <div className="grid gap-6">
+        {tasks.map((task: any) => (
+          <div key={task.id} className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500 flex justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">{task.title}</h3>
+              <p className="text-gray-500">{task.description}</p>
+            </div>
+            <div className="text-right">
+              <span className={`px-3 py-1 rounded-full text-sm ${task.priority === 5 ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                Prioridade Nível {task.priority}
+              </span>
+              <p className="text-xs text-gray-400 mt-2">ID do Usuário: {task.userId}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+4. Automação e Deploy (Dockerfile & CI/CD)
+Padronização do ambiente e entrega contínua.
+Dockerfile:
+code
+Dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN npm install && npx prisma generate && npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+Workflow GitHub Actions (main.yml):
+code
+Yaml
+name: CI/CD Pipeline
+on: [push]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm install
+      - name: Run Tests
+        run: npm test
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
+        run: echo "Iniciando Deploy Automático..."
+5. Resumo de Comandos para Execução
+Instalar dependências: npm install express @prisma/client swagger-ui-express axios
+Iniciar Banco de Dados: npx prisma migrate dev
+Rodar Backend: ts-node server.ts
+Acessar Docs: http://localhost:3000/api-docs
+✅ Como este arquivo materializa seu projeto:
+Velocidade: Todo o boilerplate está aqui.
+IA Ativa: A lógica de priorização automática reduz a carga cognitiva do usuário.
+Qualidade: Inclui documentação (Swagger) e pipeline de automação (CI/CD).
+Foco Estratégico: Você agora só precisa decidir quais novos "superpoderes" de IA quer adicionar ao suggestPriority.
